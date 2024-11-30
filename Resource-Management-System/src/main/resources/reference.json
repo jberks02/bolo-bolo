@@ -1,0 +1,8 @@
+{
+  "db": {
+    "host": "jdbc:mariadb://bolo.local:3306/RMS",
+    "username": "svc-agent",
+    "password": "vigil",
+    "driver": "org.mariadb.jdbc.Driver"
+  }
+}
