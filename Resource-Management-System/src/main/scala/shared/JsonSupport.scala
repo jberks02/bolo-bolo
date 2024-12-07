@@ -1,19 +1,15 @@
 package shared
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include
-import com.fasterxml.jackson.databind.DeserializationFeature
-import com.fasterxml.jackson.databind.json.JsonMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.scala.{ClassTagExtensions, DefaultScalaModule}
-
 import scala.reflect.ClassTag
 import models.*
-import spray.json.*
+import spray.json._
 import spray.json.DefaultJsonProtocol.*
-
-import java.sql.ResultSet
+import org.postgresql.util.PGobject
+import doobie.util.meta.Meta
+import doobie.util.Put
 import java.util.UUID
 import java.time.LocalDateTime
+import doobie._
 
 implicit val uuidFormat: JsonFormat[UUID] = new JsonFormat[UUID] {
   def write(uuid: UUID): JsValue = JsString(uuid.toString)
@@ -33,17 +29,18 @@ implicit val localDateTimeFormat: JsonFormat[LocalDateTime] = new JsonFormat[Loc
 
 implicit val itemFormat: RootJsonFormat[Item] = jsonFormat6(Item.apply)
 implicit val itemListFormat: RootJsonFormat[List[Item]] = listFormat(itemFormat)
+// Doobie implicits start here - For database reads and writes.
+private def fromStringToListString(str: String): List[String] =
+  str.parseJson.convertTo[List[String]]
 
-//def resultsTo
+private def fromListStringToString(strList: List[String]): String =
+  strList.toJson.toString
 
-private val jsonMapper: JsonMapper with ClassTagExtensions = JsonMapper
-  .builder
-  .addModule(new JavaTimeModule())
-  .addModule(DefaultScalaModule)
-  .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-  .serializationInclusion(Include.NON_EMPTY)
-  .build() :: ClassTagExtensions
-
-def writeToJsonString(value: Any): String = jsonMapper.writeValueAsString(value)
-def resultSetToObject[T: ClassTag](value: ResultSet): T = jsonMapper.convertValue[T](value)
-def jsonToObject[T: ClassTag](value: String): T = jsonMapper.readValue[T](value)
+implicit val stringListGet: Get[List[String]] = Get[String].map(fromStringToListString)
+implicit val pgObjectMeta: Meta[PGobject] = Meta.Advanced.other[PGobject]("jsonb")
+implicit val listStringJsonbPut: Put[List[String]] = pgObjectMeta.put.contramap[List[String]] { list =>
+  val pgObj = new PGobject
+  pgObj.setType("jsonb")
+  pgObj.setValue(list.toJson.compactPrint)
+  pgObj
+}
