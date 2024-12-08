@@ -19,7 +19,7 @@ val BareRoutes: Route = concat( path("ready") {
     getFromResource("swagger.json", ContentTypes.`application/json`)
   },
   pathPrefix("api-docs") {
-    getFromResourceDirectory("swagger-ui")
+    getFromBrowseableDirectory("src/main/resources/swagger-ui/")
   }
 )
 

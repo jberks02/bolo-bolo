@@ -14,7 +14,7 @@ def RMSServer(): Unit = {
   given executionContext: ExecutionContextExecutor = system.executionContext
   val routes: Route = concat(BareRoutes, ItemRoutes)
   val bindingFuture = Http().newServerAt("localhost", 8080).bind(routes)
-  println("Server online at http://localhost:8080/hello\nPress RETURN to stop...")
+  println("Server online at http://localhost:8080 \nPress RETURN to stop...")
   scala.io.StdIn.readLine() // Keep the server running until user presses return
   bindingFuture
     .flatMap(_.unbind())
