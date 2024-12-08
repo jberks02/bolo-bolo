@@ -14,6 +14,12 @@ val BareRoutes: Route = concat( path("ready") {
     get {
       complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Server health is good.</h1>"))
     }
+  },
+  path("swagger.json") {
+    getFromResource("swagger.json", ContentTypes.`application/json`)
+  },
+  pathPrefix("api-docs") {
+    getFromResourceDirectory("swagger-ui")
   }
 )
 
