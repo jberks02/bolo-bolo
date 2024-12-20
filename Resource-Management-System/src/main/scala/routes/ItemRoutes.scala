@@ -1,18 +1,20 @@
 package routes
 
-import models.Item
-import controllers.*
+import models.{DbConnection, Item}
 import shared.*
 import org.apache.pekko.http.scaladsl.server.Route
-import org.apache.pekko.http.scaladsl.server.Directives._
-import org.apache.pekko.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import spray.json.DefaultJsonProtocol._
-import spray.json._
+import org.apache.pekko.http.scaladsl.server.Directives.*
+import org.apache.pekko.http.scaladsl.marshallers.sprayjson.SprayJsonSupport.*
+import spray.json.DefaultJsonProtocol.*
+import spray.json.*
 import org.apache.pekko.http.scaladsl.model.*
 import scala.util.{Failure, Success}
 import scala.concurrent.ExecutionContext
+import dao.DbConnector
+import controllers.ItemController._
 
 implicit val ec: ExecutionContext = ExecutionContext.global
+implicit val db: DbConnection = DbConnector
 
 val ItemRoutes: Route = pathPrefix("item") {
   concat(
