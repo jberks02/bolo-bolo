@@ -65,7 +65,7 @@ object ItemQueries {
          SET "documentationUrls" = $docs
          WHERE "itemId" = $id
        """.update
-  def updateCommonnamesField(id: UUID, names: List[String]): Update0 =
+  def updateCommonNamesField(id: UUID, names: List[String]): Update0 =
     sql"""
          Update "Items"
          SET "commonNames" = $names

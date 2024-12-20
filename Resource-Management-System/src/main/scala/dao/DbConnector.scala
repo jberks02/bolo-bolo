@@ -3,14 +3,15 @@ package dao
 import shared.ApplicationConfigurations.dbConfig
 import scala.concurrent.Future
 import scala.reflect.ClassTag
-import doobie._
-import doobie.implicits._
-import cats._
-import cats.effect._
+import doobie.*
+import doobie.implicits.*
+import cats.*
+import cats.effect.*
 import cats.effect.unsafe.implicits.global
+import models.DbConnection
 
 
-object DbConnector {
+object DbConnector extends DbConnection {
   
   private val transactor = Transactor.fromDriverManager[IO](
     driver = dbConfig.driver,

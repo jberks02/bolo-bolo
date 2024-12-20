@@ -1,8 +1,0 @@
-{
-  "db": {
-    "host": "jdbc:postgresql://bolo.local:5432/rms",
-    "username": "svc_agent",
-    "password": "vigil",
-    "driver": "org.postgresql.Driver"
-  }
-}
