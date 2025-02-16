@@ -22,7 +22,6 @@ object PostgersqlConnector {
     val req = query.to[List].transact(transactor)
     req.unsafeToFuture()
   }
-
   def executeInsert(in: Update0): Future[Int] = {
     in.run.transact(transactor).unsafeToFuture()
   }

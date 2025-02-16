@@ -1,11 +1,10 @@
 package webserver
 
-import org.apache.pekko.actor.typed.{ActorSystem, Behavior}
+import org.apache.pekko.actor.typed.Behavior
 import org.apache.pekko.actor.typed.scaladsl.Behaviors
 import org.apache.pekko.http.scaladsl.Http
 import org.apache.pekko.http.scaladsl.server.Route
 import org.apache.pekko.http.scaladsl.server.Directives.*
-import org.apache.pekko.util.Timeout
 import webserver.routes.*
 
 object HttpServerActor {
