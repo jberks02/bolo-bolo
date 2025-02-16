@@ -1,28 +1,24 @@
-package middleware
+package webserver.middleware
 
 import models.AuthToken
 import org.apache.pekko.http.scaladsl.model.StatusCodes
 import org.apache.pekko.http.scaladsl.model.headers.RawHeader
-import shared.AppConfiguration.{authHeader, authTimeout, cyrptoToken, whiteListedRoutes}
+import shared.AppConfiguration.{authHeader, authTimeout, cyrptoToken}
 import org.apache.pekko.http.scaladsl.server.Directives.*
 import org.apache.pekko.http.scaladsl.server.{Directive1, RequestContext}
-
 import java.util.Base64
 import java.nio.ByteBuffer
-import spray.json.*
-import shared.SprayImplicits.*
-
-import java.nio.charset.StandardCharsets
-import java.security.{MessageDigest, NoSuchAlgorithmException, SecureRandom}
+import spray.json._
+import shared.SprayImplicits._
 import java.time.LocalDateTime
-import javax.crypto.{Cipher, KeyGenerator}
+import javax.crypto.Cipher
 import java.util.UUID
 import javax.crypto.spec.{IvParameterSpec, SecretKeySpec}
 
 object RouteAuthentication {
   private val Transformation = "AES/CBC/PKCS5Padding"
   private val CharSet = java.nio.charset.StandardCharsets.UTF_8
-  private val bytedCryptoToken: Array[Byte] = cyrptoToken.getBytes(CharSet)
+  val bytedCryptoToken: Array[Byte] = cyrptoToken.getBytes(CharSet)
   private def ivToString(ivStr: Array[Byte]): String = {
     Base64.getEncoder.encodeToString(ivStr)
   }
@@ -34,9 +30,9 @@ object RouteAuthentication {
     val buffer = ByteBuffer.allocate(16)
     buffer.putLong(uuid.getMostSignificantBits)
     buffer.putLong(uuid.getLeastSignificantBits)
-    buffer.array()
+    buffer.array
   }
-  private def encrypt(plaintext: String, key: Array[Byte], iv: Array[Byte]): String = {
+  def encrypt(plaintext: String, key: Array[Byte], iv: Array[Byte]): String = {
     require(key.length == 32, "Key must be 32 bytes for AES-256.")
     require(iv.length == 16, "IV must be 16 bytes.")
     val secretKeySpec = new SecretKeySpec(key, "AES")

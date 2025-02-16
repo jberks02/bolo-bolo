@@ -2,6 +2,7 @@ package models
 
 import java.time.LocalDateTime
 import java.util.UUID
+import doobie.util.{Read, Write}
 
 sealed trait AuthLevel;
 object AuthLevel {
@@ -38,4 +39,3 @@ case class Person(
                  createdAt: LocalDateTime,
                  updatedAt: LocalDateTime
                  )
-

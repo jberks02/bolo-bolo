@@ -1,7 +1,6 @@
 package webserver.controllers
 
 import models.{ItemCheckoutRequest, Person, Item}
-
 import scala.concurrent.{ExecutionContext, Future}
 
 object ItemControls {

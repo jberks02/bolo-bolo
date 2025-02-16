@@ -1,8 +1,9 @@
 package models
 
+import java.util.UUID
+
 case class LoginBody(
-                    firstName: String,
-                    lastName: String,
-                    password: String,
-                    token: String
+                      personId: UUID,
+                      password: String,
+                      token: String
                     )
