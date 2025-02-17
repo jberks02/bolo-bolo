@@ -34,6 +34,7 @@ case class Person(
                  personId: UUID,
                  auth: AuthLevel,
                  firstName: String,
+                 middleName: Option[String],
                  lastName: String,
                  email: String,
                  createdAt: LocalDateTime,

@@ -1,6 +1,6 @@
 package webserver.middleware
 
-import models.AuthToken
+import models.AccountRequests.AuthToken
 import org.apache.pekko.http.scaladsl.model.StatusCodes
 import org.apache.pekko.http.scaladsl.model.headers.RawHeader
 import shared.AppConfiguration.{authHeader, authTimeout, cyrptoToken}

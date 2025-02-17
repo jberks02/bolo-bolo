@@ -8,6 +8,7 @@ case class Item(
   ownerId: UUID,
   itemName: String,
   description: String,
+  category: String,
   location: String,
   createdAt: LocalDateTime,
   updatedAt: LocalDateTime

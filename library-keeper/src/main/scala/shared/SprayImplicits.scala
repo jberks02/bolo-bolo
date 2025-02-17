@@ -1,6 +1,7 @@
 package shared
 
-import models.{AuthLevel, AuthToken, CompleteToken, CreationToken, LoginBody, NewUser, Person}
+import models.AccountRequests.*
+import models.{AuthLevel, Item, Person}
 import spray.json.DefaultJsonProtocol.*
 import spray.json.*
 
@@ -28,10 +29,17 @@ object SprayImplicits {
       case JsNumber(value) => AuthLevel.fromInteger(value.toInt)
       case _ => deserializationError("Invalid json type received for AuthLevel")
   }
-  implicit val itemFormat: RootJsonFormat[LoginBody] = jsonFormat3(LoginBody.apply)
-  implicit val personFormat: RootJsonFormat[Person] = jsonFormat7(Person.apply)
+  implicit val loginBodyFormat: RootJsonFormat[LoginBody] = jsonFormat3(LoginBody.apply)
+  implicit val personFormat: RootJsonFormat[Person] = jsonFormat8(Person.apply)
   implicit val authTokenFormat: RootJsonFormat[AuthToken] = jsonFormat4(AuthToken.apply)
   implicit val newUserFormat: RootJsonFormat[NewUser] = jsonFormat4(NewUser.apply)
   implicit val creationTokenFormat: RootJsonFormat[CreationToken] = jsonFormat3(CreationToken.apply)
   implicit val completeTokenFormat: RootJsonFormat[CompleteToken] = jsonFormat4(CompleteToken.apply)
+  implicit val userPromotionFormat: RootJsonFormat[UserPromotion] = jsonFormat2(UserPromotion.apply)
+  implicit val userPasswordUpdateFormat: RootJsonFormat[PasswordUpdate] = jsonFormat4(PasswordUpdate.apply)
+  implicit val userPasswordTokenUpdateFormat: RootJsonFormat[UserPasswordTokenUpdate] = jsonFormat4(UserPasswordTokenUpdate.apply)
+  implicit val personDetailsUpdateFormat: RootJsonFormat[UpdatePersonDetails] = jsonFormat5(UpdatePersonDetails.apply)
+  implicit val itemFormat: RootJsonFormat[Item] = jsonFormat8(Item.apply)
+  implicit val itemListFormat: RootJsonFormat[List[Item]] = listFormat(itemFormat)
+  implicit val stringListFormat: RootJsonFormat[List[String]] = listFormat(StringJsonFormat)
 }
