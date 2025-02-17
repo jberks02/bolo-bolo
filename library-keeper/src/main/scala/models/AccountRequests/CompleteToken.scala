@@ -1,4 +1,4 @@
-package models
+package models.AccountRequests
 
 import java.time.LocalDateTime
 

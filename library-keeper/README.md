@@ -211,5 +211,45 @@ flowchart TD
 a(User Request Comes In) --> b(Filter Stage Hit) --> c(Route Checked to see if it's in exception list) --> d(Header Token Decrypted and Validated) --> e(Call is passed to actual endpoint)
 c --> f(Unique route handled) --> g(Route Completed)
 ```
-
-
+```mermaid
+---
+title: New User Sign Up
+---
+flowchart TD 
+a(User Receives Sign Up Token) 
+b(New system is setup with no Users in the Database)
+c(Requests for sign up comes in)
+d(User has valid token)
+f(User token is invalid or expired)
+NoToken(User has not provided a token)
+a --> c --> d --> e(User profile created new header token sent back to user.)
+b --> c --> f --> g(User receives error telling them to contact system administrator)
+c --> NoToken --> NoUsers(Person Data bae is empty, new user becomes administrator.)
+NoToken --> ValidUsers(There are valid users in the database, error to get sign up token received.)
+```
+```mermaid
+---
+title: Administrator Permission Upgrade
+---
+flowchart TD
+    Promo(Administrator wishes to promote someone to higher level)
+    Req(Administrator sends request to upgrade permissions)
+    Auth(Request authenticated to be from administrator)
+    NoAuth(Bad request returned to non administrator)
+    Authed(User database record updated with posted new level)
+    NoContent(NoContent result message returned)
+    Promo --> Req --> Auth --> Authed --> NoContent
+    Req --> NoAuth
+```
+```mermaid
+---
+title: User adds available item to data set
+---
+flowchart TD
+    NewItem(User fills out form for new item they want to add to the dataset.)
+    Authentication(User authentication confirmed. Item confirmed to be owned by them.)
+    Added(Item added to dataset)
+    Permissions(User permissions updated based on number of items in the database.)
+    NoContent(NoContent success message sent to user.)
+    NewItem --> Authentication --> Added --> Permissions --> NoContent
+```

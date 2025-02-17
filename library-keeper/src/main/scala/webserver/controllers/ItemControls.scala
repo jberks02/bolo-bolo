@@ -1,13 +1,15 @@
 package webserver.controllers
 
-import models.{ItemCheckoutRequest, Person, Item}
+import models._
+import dataConnectors.PostgersqlConnector._
+import webserver.queries.ItemQueries._
+import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 object ItemControls {
-  def getItemRequests()(implicit ec: ExecutionContext, user: Person): Future[List[ItemCheckoutRequest]] = ???
-  def getUserItems()(implicit ec: ExecutionContext, user: Person): Future[List[Item]] = ???
-  def getAvailableItems(paginationId: String, size: Int, page: Int)(implicit ec: ExecutionContext): Future[List[Item]] = ???
-  def searchItems(searchTerm: String)(implicit ec: ExecutionContext): Future[List[Item]] = ??? 
-  def createCheckoutRequest(itemId: String)(implicit ec: ExecutionContext, user: Person): Future[Unit] = ??? 
+  def searchItemsByName(searchTerm: String)(implicit ec: ExecutionContext): Future[List[Item]] = executeQuery(searchItems(searchTerm))
+  def getUserItems(personId: UUID)(implicit ec: ExecutionContext): Future[List[Item]] = executeQuery(readUserItems(personId))
+  def getItemsByCategory(category: String)(implicit ec: ExecutionContext): Future[List[Item]] = executeQuery(readItemsByCategory(category))
+  def getCategoryList()(implicit ec: ExecutionContext): Future[List[String]] = executeQuery(readDistinctCategories())
   
 }
