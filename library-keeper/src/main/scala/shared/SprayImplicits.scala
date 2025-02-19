@@ -1,6 +1,7 @@
 package shared
 
 import models.AccountRequests.*
+import models.ItemRequests.UpdateItemDetails
 import models.{AuthLevel, Item, Person}
 import spray.json.DefaultJsonProtocol.*
 import spray.json.*
@@ -40,6 +41,7 @@ object SprayImplicits {
   implicit val userPasswordTokenUpdateFormat: RootJsonFormat[UserPasswordTokenUpdate] = jsonFormat4(UserPasswordTokenUpdate.apply)
   implicit val personDetailsUpdateFormat: RootJsonFormat[UpdatePersonDetails] = jsonFormat5(UpdatePersonDetails.apply)
   implicit val itemFormat: RootJsonFormat[Item] = jsonFormat8(Item.apply)
+  implicit val updateItemDetailsFormat: RootJsonFormat[UpdateItemDetails] = jsonFormat5(UpdateItemDetails.apply)
   implicit val itemListFormat: RootJsonFormat[List[Item]] = listFormat(itemFormat)
   implicit val stringListFormat: RootJsonFormat[List[String]] = listFormat(StringJsonFormat)
 }

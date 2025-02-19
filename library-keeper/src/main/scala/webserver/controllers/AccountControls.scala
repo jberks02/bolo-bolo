@@ -12,7 +12,7 @@ import org.apache.pekko.stream.Materializer
 import org.apache.pekko.util.ByteString
 import spray.json.*
 import shared.SprayImplicits.*
-import shared.CommonFunctions.sha256hash
+import shared.CommonFunctions.{parseFormData, sha256hash}
 
 import java.time.LocalDateTime
 import java.util.UUID
@@ -67,12 +67,9 @@ object AccountControls {
     executeInsert(insertNewToken(completeToken)).map(_ => completeToken)
   }
   def updateUserProfileImage(token: AuthToken, image: FormData)(implicit ec: ExecutionContext, mat: Materializer): Future[Unit] = {
-    image.parts.mapAsync(1) { part =>
-          part.entity.dataBytes.runFold(ByteString.empty)(_ ++ _)
-        }.runFold(ByteString.empty)(_ ++ _).flatMap {byteString =>
-          val bytes = byteString.toArray
-          executeInsert(updatePersonImage(bytes, token.user.personId)).map(_ => ())
-        }
+    parseFormData(image).flatMap{ bytes =>
+      executeInsert(updatePersonImage(bytes, token.user.personId)).map(_ => ())
+    }
   }
   def promoteUser(promotion: UserPromotion)(implicit ec: ExecutionContext): Future[Unit] = {
     executeInsert(updatePersonAuth(promotion)).map(_ => ())
