@@ -200,7 +200,7 @@ These are descriptions of the basic flows within that application to facilitate 
 title: User Sign On Flow
 ---
 flowchart TD
-    id1(User Types In Domain) --> id2(User Scans One Time Use QR Code) --> id3(User Creates Profile) --> id4(Users password and information is stored, JWT tracks sessions)
+    id1(User Clicks Invite Link) --> id3(User Creates Profile) --> id4(Users password and information is stored) --> id5(User Stores token safely on device)
 ```
 
 ```mermaid
@@ -241,15 +241,122 @@ flowchart TD
     Promo --> Req --> Auth --> Authed --> NoContent
     Req --> NoAuth
 ```
+### Item Rental Flows
 ```mermaid
 ---
-title: User adds available item to data set
+title: User adds rental item
 ---
 flowchart TD
+    AddItem(User presses add button and selects Rental Item)
     NewItem(User fills out form for new item they want to add to the dataset.)
+    Optional(User can optionally add an image of the rental item)
     Authentication(User authentication confirmed. Item confirmed to be owned by them.)
     Added(Item added to dataset)
     Permissions(User permissions updated based on number of items in the database.)
     NoContent(NoContent success message sent to user.)
-    NewItem --> Authentication --> Added --> Permissions --> NoContent
+    AddItem --> NewItem --> Optional --> Authentication --> Added --> Permissions --> NoContent
+```
+```mermaid
+---
+title: User checks out item
+---
+flowchart TD
+    FindsItem(User finds item they wish to check out)
+    UserIsHighEnoughAuthLevel(Users auth level or level is appropriate)
+    Rejection(User is unable to checkout item)
+    SelectsOptions(User selects from available dates and pickup locations)
+    ProposesPriceFromRange(User proposes price from item given range)
+    ChatOpensToFinalizeDeal(User and item owner open temporary chat to discuss details)
+    PriceFinalized(Price and details are finalized by both parties.)
+    PaymentFinalized(User pays the owner, signaling the completion of the transaction part)
+    PickupHappened(User marks item as Picked Up.)
+    ReturnHappened(Owner marks item as returned once returned)
+    Rating(?Both are prompted to rate one another?)
+    FindsItem --> UserIsHighEnoughAuthLevel -- Yes --> SelectsOptions --> ProposesPriceFromRange -->
+    ChatOpensToFinalizeDeal --> PriceFinalized --> PaymentFinalized --> PickupHappened --> 
+    ReturnHappened --> Rating
+    
+    UserIsHighEnoughAuthLevel --No --> Rejection
+```
+```mermaid
+---
+title: Item Owner Receives Rental Alert
+---
+flowchart TD
+    ItemRentalRequested(A User asks to rent item held by owner)
+    Review(Owner reviews details and price of request)
+    ChatInitiated(Owner agrees to open chat)
+    Chat(Owner and User discuss details of rental pickup and drop off)
+    PriceAndTermsFinalized(Price and details are finalized by both parties)
+    PaymentFinalized(Payment is finalized by User requesting item when they pay)
+    Pickup(User marks item as picked up)
+    DropOff(Owner marks item as dropped off)
+    Rating(?Both are prompted to rate each other?)
+    ItemRentalRequested --> Review --> ChatInitiated --> Chat --> PriceAndTermsFinalized -->
+    PaymentFinalized --> Pickup --> DropOff --> Rating 
+```
+### Service Requested Flows
+```mermaid
+---
+title: User Adds Service
+---
+flowchart TD
+%%    Need to find a better word than service
+    PressesAdd(User presses add button and selects Service)
+    Form(User fills out information for service)
+    Optional(Optionally User adds an image to represent the service)
+    ItemUpload(Item and details are uploaded to dataset)
+    Image(Image is added if user uploaded one)
+    ServiceIsAvailableForRequest(Service becomes available for request)
+    PressesAdd --> Form --> Optional --> ItemUpload --> Image --> ServiceIsAvailableForRequest
+```
+```mermaid
+---
+title: User Requests Service
+---
+flowchart TD
+    UserReq(User finds service they need)
+    Date(User specifies available date and time)
+    Price(User picks from price range)
+    FinalizesFromDetails(User Finalizes choices Prompting worker for chat)
+    Chat(User and worker chat to finalize price and timeframe)
+    TermsFinalized(Both parties finalize details)
+    Payment(Payment finalized once user pays)
+    Fulfilled(User marks service as fulfilled once they are satisfied service is complete)
+    Cancelled(Service can be cancelled for any reason if both parties agree)
+    Rating(?Users rate one another and experience)
+    UserReq --> Date --> Price --> FinalizesFromDetails --> Chat --> TermsFinalized -->
+    Payment --> Fulfilled --> Rating
+    Payment --> Cancelled --> Rating
+```
+```mermaid
+---
+title: User Gets Service Request
+---
+flowchart TD
+    Notification(Worker gets notification of service request)
+    Review(Reviews details of request from user)
+    Reject(Worker either doesn't want to or can't fulfill service and rejects it)
+    Accept(Worker accepts initial proposal to start chat)
+    Chat(Worker and user begin chat to finalize details of job)
+    FinalizeDetails(Both users agree to the terms of the service)
+    Payment(Payment made by User Finalizing Transaction)
+    Fulfillment(User marks task as fulfilled releasing payment)
+    Rating(?Both users rate each other?)
+    Notification --> Review --> Accept --> Chat --> FinalizeDetails --> Payment --> Fulfillment --> Rating
+    Review --> Reject
+    Chat --> Reject
+```
+### General Payment Flow
+```mermaid
+---
+title: Payment Flow (General)
+---
+flowchart TD
+    DetailsFinalized(Details of deal finalized - Date,time,price)
+    Rejection(Cancellation or other rejection condition results in monetary repayment)
+    UserFinalizesPayment(User has money removed to pay for service and goes into the app as pending toward the end user)
+    FinalizedActionOccurs(Item is picked up or service is fulfilled, paying out to renter or worker)
+    DetailsFinalized --> UserFinalizesPayment --> FinalizedActionOccurs
+    UserFinalizesPayment --> Rejection
 ```

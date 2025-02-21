@@ -30,6 +30,7 @@ def AccountRoutes()(implicit ec: ExecutionContext, mat: Materializer): Route = p
             case Success(value) => complete(value)
             case Failure(err: Throwable) =>
               err match
+                case no: NoSuchElementException => complete(StatusCodes.NotFound, "User not found")
                 case ba: BadAuthentication => complete(StatusCodes.Unauthorized, "Passwords did not match")
                 case ex: Throwable => complete(StatusCodes.InternalServerError, s"User Could not be authenticated due to internal error: ${ex.getMessage}")
           }
@@ -54,6 +55,7 @@ def AccountRoutes()(implicit ec: ExecutionContext, mat: Materializer): Route = p
           onComplete(registerNewUser(newUser)) {
             case Failure(exception) =>
               exception match
+                case no: NoSuchElementException => complete(StatusCodes.NotFound, "Token not found.")
                 case ba: BadRequest => complete(StatusCodes.BadRequest, s"User could not be created due to bad request: ${ba.getMessage}")
                 case ex: Throwable => complete(StatusCodes.InternalServerError, s"User could not be created due to internal error: ${ex.getMessage}")
             case Success(value) => complete(value)
@@ -97,7 +99,10 @@ def AccountRoutes()(implicit ec: ExecutionContext, mat: Materializer): Route = p
             case Success(value) => value match
               case Some(image) => complete(StatusCodes.OK, image)
               case None => complete(StatusCodes.NotFound, "User image not found.")
-            case Failure(exception) => complete(StatusCodes.InternalServerError, s"User image could not be retrieved due to internal error: ${exception.getMessage}")
+            case Failure(exception) => 
+              exception match
+                case no: NoSuchElementException => complete(StatusCodes.NotFound, "User image not found.")
+                case ec: Throwable => complete(StatusCodes.InternalServerError, s"User image could not be retrieved due to internal error: ${ec.getMessage}")
           }
         }
       }
@@ -126,6 +131,7 @@ def AccountRoutes()(implicit ec: ExecutionContext, mat: Materializer): Route = p
               case Success(_) => complete(StatusCodes.NoContent)
               case Failure(exception) =>
                 exception match
+                  case no: NoSuchElementException => complete(StatusCodes.NotFound, "User data could not be found.")
                   case e: NotMatchingParameters => complete(StatusCodes.BadRequest, s"Variables in request body did not match: ${e.getMessage}")
                   case e: Throwable => complete(StatusCodes.InternalServerError, s"User password could not be updated due to internal error: ${e.getMessage}")
             }
@@ -141,6 +147,7 @@ def AccountRoutes()(implicit ec: ExecutionContext, mat: Materializer): Route = p
               case Success(_) => complete(StatusCodes.NoContent)
               case Failure(exception) =>
                 exception match
+                  case no: NoSuchElementException => complete(StatusCodes.NotFound, "User data could not be found.")
                   case e: NotMatchingParameters => complete(StatusCodes.BadRequest, s"Variables in request body did not match: ${e.getMessage}")
                   case e: Throwable => complete(StatusCodes.InternalServerError, s"User password could not be updated due to internal error: ${e.getMessage}")
             }
@@ -156,7 +163,10 @@ def AccountRoutes()(implicit ec: ExecutionContext, mat: Materializer): Route = p
             if token.user.personId.equals(personDetails.personId) || token.user.auth == Administrator then
               onComplete(updatePersonalDetails(personDetails)) {
                 case Success(value) => complete(StatusCodes.OK, value)
-                case Failure(exception) => complete(StatusCodes.InternalServerError, s"User details could not be updated due to internal error: ${exception.getMessage}")
+                case Failure(exception) => 
+                  exception match
+                    case no: NoSuchElementException => complete(StatusCodes.NotFound, "User data could not be found.")
+                    case ec: Throwable => complete(StatusCodes.InternalServerError, s"User details could not be updated due to internal error: ${ec.getMessage}")
               }
             else complete(StatusCodes.Forbidden, "You do not have permission to update this user.")
           }

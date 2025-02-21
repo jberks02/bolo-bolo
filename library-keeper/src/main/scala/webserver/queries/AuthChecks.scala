@@ -12,14 +12,29 @@ import shared.DoobieCaseObjectMappings.*
 import java.util.UUID
 
 object AuthChecks {
-  def getUserEncPassword(personId: UUID): Query0[String] = {
+  def getUserEncPassword(email: String): Query0[String] = {
     sql"""
       SELECT enc_password
       FROM people
-      WHERE person_id = $personId
+      WHERE email = $email
     """.query[String]
   }
-  def getUserData(personId: UUID): Query0[Person] = {
+  def getUserData(email: String): Query0[Person] = {
+    sql"""
+          SELECT
+            person_id,
+            auth,
+            first_name,
+            middle_name
+            last_name,
+            email,
+            createdAt,
+            updatedAt
+          FROM people
+          WHERE email = $email
+       """.query[Person]
+  }
+  def getUserDataById(personId: UUID): Query0[Person] = {
     sql"""
           SELECT
             person_id,
@@ -32,7 +47,7 @@ object AuthChecks {
             updatedAt
           FROM people
           WHERE person_id = $personId
-       """.query[Person]
+    """.query[Person]
   }
   def getUserImageData(id: UUID): Query0[Option[Array[Byte]]] = {
     sql"""

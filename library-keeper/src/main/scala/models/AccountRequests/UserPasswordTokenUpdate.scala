@@ -6,5 +6,6 @@ case class UserPasswordTokenUpdate(
                                   previousToken: String,
                                   newToken: String,
                                   password: String,
+                                  email: String,
                                   personId: UUID
                                   )

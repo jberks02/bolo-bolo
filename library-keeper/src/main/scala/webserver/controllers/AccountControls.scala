@@ -12,23 +12,23 @@ import org.apache.pekko.stream.Materializer
 import org.apache.pekko.util.ByteString
 import spray.json.*
 import shared.SprayImplicits.*
-import shared.CommonFunctions.sha256hash
+import shared.CommonFunctions.{parseFormData, sha256hash}
 
 import java.time.LocalDateTime
 import java.util.UUID
 import scala.concurrent.{ExecutionContext, Future}
 
 object AccountControls {
-  private def generateEncryptedPassword(passWordEncryptionToken: String, password: String, personId: UUID): String = {
+  private def generateEncryptedPassword(passWordEncryptionToken: String, password: String, email: String): String = {
     val iv: Array[Byte] = passWordEncryptionToken.getBytes
-    encrypt(password, personId.toString.getBytes, iv)
+    encrypt(password, email.getBytes, iv)
   }
   def login(loginBody: LoginBody)(implicit ec: ExecutionContext): Future[String] = {
     val start = LocalDateTime.now
-    val encryptedPassword: String = generateEncryptedPassword(loginBody.token, loginBody.password, loginBody.personId)
-    executeQuery(getUserEncPassword(loginBody.personId)).flatMap{password =>
+    val encryptedPassword: String = generateEncryptedPassword(loginBody.token, loginBody.password, loginBody.email)
+    executeQuery(getUserEncPassword(loginBody.email)).flatMap{password =>
       if password.head == loginBody.password then
-        executeQuery(getUserData(loginBody.personId)).map{person =>
+        executeQuery(getUserData(loginBody.email)).map{person =>
           val token = AuthToken(person.head, start, start, true)
           encryptWithEmbeddedIV(token.toJson.compactPrint, bytedCryptoToken)
         }
@@ -42,7 +42,7 @@ object AccountControls {
           val now = LocalDateTime.now
           val newPersonRecord = newUser.person.copy(auth = Viewer)
           if validated.head.valid && validated.head.expiration.isAfter(now) then
-            val encryptedPassword = generateEncryptedPassword(newUser.passwordEncryptionToken, newUser.password, newUser.person.personId)
+            val encryptedPassword = generateEncryptedPassword(newUser.passwordEncryptionToken, newUser.password, newUser.person.email)
             //insert and invalidate token in parallel
             executeInsert(insertNewPerson(newPersonRecord, newUser.password)).zip(executeInsert(invalidateToken(value))).map(_ =>
               encryptWithEmbeddedIV(AuthToken(newPersonRecord, now, now, true).toJson.compactPrint, bytedCryptoToken)
@@ -54,7 +54,7 @@ object AccountControls {
           if count.head == 0 then
             val now = LocalDateTime.now
             val newPersonRecord = newUser.person.copy(auth = Administrator)
-            val encryptedPassword = generateEncryptedPassword(newUser.passwordEncryptionToken, newUser.password, newUser.person.personId)
+            val encryptedPassword = generateEncryptedPassword(newUser.passwordEncryptionToken, newUser.password, newUser.person.email)
             executeInsert(insertNewPerson(newPersonRecord, newUser.password)).map(_ =>
               encryptWithEmbeddedIV(AuthToken(newPersonRecord, LocalDateTime.now, LocalDateTime.now, true).toJson.compactPrint, bytedCryptoToken)
             )
@@ -67,21 +67,18 @@ object AccountControls {
     executeInsert(insertNewToken(completeToken)).map(_ => completeToken)
   }
   def updateUserProfileImage(token: AuthToken, image: FormData)(implicit ec: ExecutionContext, mat: Materializer): Future[Unit] = {
-    image.parts.mapAsync(1) { part =>
-          part.entity.dataBytes.runFold(ByteString.empty)(_ ++ _)
-        }.runFold(ByteString.empty)(_ ++ _).flatMap {byteString =>
-          val bytes = byteString.toArray
-          executeInsert(updatePersonImage(bytes, token.user.personId)).map(_ => ())
-        }
+    parseFormData(image).flatMap{ bytes =>
+      executeInsert(updatePersonImage(bytes, token.user.personId)).map(_ => ())
+    }
   }
   def promoteUser(promotion: UserPromotion)(implicit ec: ExecutionContext): Future[Unit] = {
     executeInsert(updatePersonAuth(promotion)).map(_ => ())
   }
   def updateUserPassword(token: AuthToken, update: PasswordUpdate)(implicit ec: ExecutionContext): Future[Unit] = {
-    if token.user.personId.equals(update.personId) then
-      val previousPassword = generateEncryptedPassword(update.token, update.previousPassword, update.personId)
-      val newPassword = generateEncryptedPassword(update.token, update.newPassword, update.personId)
-      executeQuery(getUserEncPassword(update.personId)).flatMap{encPassword =>
+    if token.user.email.equals(update.email) then
+      val previousPassword = generateEncryptedPassword(update.token, update.previousPassword, update.email)
+      val newPassword = generateEncryptedPassword(update.token, update.newPassword, update.email)
+      executeQuery(getUserEncPassword(update.email)).flatMap{encPassword =>
         if encPassword.head == previousPassword then
           executeInsert(updatePersonPassword(newPassword, update.personId)).map(_ => ())
         else throw NotMatchingParameters("Previous password does not match the sent password.")
@@ -89,10 +86,10 @@ object AccountControls {
     else throw NotMatchingParameters("Person id does not match token person id. Only the authenticated user can update their own password.")
   }
   def updateTokenUsed(token: AuthToken, newToken: UserPasswordTokenUpdate)(implicit ec: ExecutionContext): Future[Unit] = {
-    if token.user.personId.equals(newToken.personId) then
-      val previousEnc = generateEncryptedPassword(newToken.previousToken, newToken.password, newToken.personId)
-      val newEnc = generateEncryptedPassword(newToken.newToken, newToken.password, newToken.personId)
-      executeQuery(getUserEncPassword(newToken.personId)).flatMap{encPass =>
+    if token.user.personId.equals(newToken.email) then
+      val previousEnc = generateEncryptedPassword(newToken.previousToken, newToken.password, newToken.email)
+      val newEnc = generateEncryptedPassword(newToken.newToken, newToken.password, newToken.email)
+      executeQuery(getUserEncPassword(newToken.email)).flatMap{encPass =>
         if encPass.head == previousEnc then
           executeInsert(updatePersonPassword(newEnc, newToken.personId)).map(_ => ())
         else throw NotMatchingParameters("Mismatch for previous token and password.")
@@ -101,7 +98,7 @@ object AccountControls {
   }
   def updatePersonalDetails(details: UpdatePersonDetails)(implicit ec: ExecutionContext): Future[Person] = {
     executeInsert(updateDetails(details)).flatMap(_ =>
-      executeQuery(getUserData(details.personId)).map(pList => pList.head)
+      executeQuery(getUserDataById(details.personId)).map(pList => pList.head)
     )
   }
   def getUserImage(personId: UUID)(implicit ec: ExecutionContext): Future[Option[Array[Byte]]] = {
